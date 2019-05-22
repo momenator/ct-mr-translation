@@ -3,8 +3,8 @@
 # Papers
 1. Tumor-Aware, Adversarial Domain Adaptation from CT to MRI for Lung Cancer Segmentation. Wolterink et al.
 2. Image Synthesis in Multi-Contrast MRI with Conditional Generative Adversarial Networks. UH et al.
-3. Cross-Modality Image Synthesisfrom Unpaired Data Using CycleGAN. Hiasa et al.
-4. Unsupervised Reverse Domain Adaptationfor Synthetic Medical Imagesvia Adversarial Training. Mahmood et al. (recommended)
+3. Cross-Modality Image Synthesis from Unpaired Data Using CycleGAN. Hiasa et al.
+4. Unsupervised Reverse Domain Adaptation for Synthetic Medical Imagesvia Adversarial Training. Mahmood et al. (recommended)
 5. Adversarial synthesis learning enables segmentation without target modality ground truth. Huo et al. (pretty close to what we plan to do!) - Reading
 6. MedGAN: Medical Image Translation using GANs. Armanious et al.
 7. Deep MR to CT Synthesis using Unpaired Data. Wolterlink et al. - Read
