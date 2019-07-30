@@ -155,7 +155,28 @@ class CycleGAN:
         self.a_real_test, self.b_real_test = utils.cuda([self.a_real_test, self.b_real_test])
         self.a_fake_pool = ItemPool()
         self.b_fake_pool = ItemPool()
-        
+
+        self.checkpoint_path = None
+        self.start_epoch = 0
+    
+
+    def load_ckpt(self, checkpoint_path):
+        try:
+            ckpt = torch.load(checkpoint_path)
+            self.checkpoint_path = checkpoint_path
+            self.start_epoch = ckpt['epoch']
+            self.Da.load_state_dict(ckpt['Da'])
+            self.Db.load_state_dict(ckpt['Db'])
+            self.Ga.load_state_dict(ckpt['Ga'])
+            self.Gb.load_state_dict(ckpt['Gb'])
+            self.da_optimizer.load_state_dict(ckpt['da_optimizer'])
+            self.db_optimizer.load_state_dict(ckpt['db_optimizer'])
+            self.ga_optimizer.load_state_dict(ckpt['ga_optimizer'])
+            self.gb_optimizer.load_state_dict(ckpt['gb_optimizer'])
+        except:
+            print("No checkpoint!")
+            self.start_epoch = 0
+
     
     def train(self, epochs=200, eval_steps=200):
         
@@ -248,10 +269,10 @@ class CycleGAN:
                 self.gb_optimizer.step()
                 
                 if (i + 100) % eval_steps:
-                    self.evaluate(epoch, i)
+                    self.evaluate(epoch, i, True)
     
     
-    def evaluate(self, epoch, iteration):
+    def evaluate(self, epoch, iteration, save_ckpt=False):
         self.Ga.eval()
         self.Gb.eval()
 
@@ -263,14 +284,29 @@ class CycleGAN:
         a_rec_test = self.Ga(b_fake_test)
         b_rec_test = self.Gb(a_fake_test)
 
-        pic = (torch.cat([self.a_real_test, 
+        pics = (torch.cat([self.a_real_test, 
                           b_fake_test, 
                           a_rec_test, 
                           self.b_real_test, 
                           a_fake_test, 
                           b_rec_test], dim=0).data + 1) / 2.0
+                
+        save_dir = './gen_images'
+        torchvision.utils.save_image(pics, '%s/Epoch_(%d)_(%d).jpg' % (save_dir, epoch, iteration), nrow=3)
         
-        save_dir = './data/generated_images'
-        utils.mkdir(save_dir)
-        torchvision.utils.save_image(pic, '%s/Epoch_(%d)_(%dof).jpg' % (save_dir, epoch, iteration + 1), nrow=3)        
-        
+        if save_ckpt:
+          
+            checkpoint_path = './ckpt'
+
+            torch.save({
+                'epoch': epoch + 1,
+                'Da': self.Da.state_dict(),
+                'Db': self.Db.state_dict(),
+                'Ga': self.Ga.state_dict(),
+                'Gb': self.Gb.state_dict(),
+                'da_optimizer': self.da_optimizer.state_dict(),
+                'db_optimizer': self.db_optimizer.state_dict(),
+                'ga_optimizer': self.ga_optimizer.state_dict(),
+                'gb_optimizer': self.gb_optimizer.state_dict()
+            }, '%s/Epoch_(%d)_(%d).ckpt' % (checkpoint_path, epoch + 1, iteration))        
+
