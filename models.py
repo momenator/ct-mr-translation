@@ -7,6 +7,7 @@ import torch.optim as optim
 from torch.autograd import Variable
 import utils
 import itertools
+import copy
 
 
 def conv_norm(in_dim, out_dim, kernel_size, stride, padding=0, relu=nn.ReLU):
