@@ -184,7 +184,7 @@ class CycleGAN:
         for epoch in range(self.start_epoch, epochs):
                         
             for i, (a_real, b_real) in enumerate(zip(self.trA_l, self.trB_l)):
-                                
+
                 step = epoch * min(len(self.trA_l), len(self.trB_l)) + i + 1
 
                 # train Gx and Gy
@@ -194,7 +194,7 @@ class CycleGAN:
                 # wraps a_real and b_real
                 a_real = Variable(a_real[0])
                 b_real = Variable(b_real[0])
-                a_real, b_real = cuda([a_real, b_real])
+                a_real, b_real = utils.cuda([a_real, b_real])
                 
                 a_fake = self.Ga(b_real)
                 b_fake = self.Gb(a_real)
@@ -209,7 +209,7 @@ class CycleGAN:
                 b_f_dis = self.Db(b_fake)
 
                 # set all labels as 1 as all are fakes
-                r_labels = cuda(Variable(torch.ones(a_f_dis.size())))
+                r_labels = utils.cuda(Variable(torch.ones(a_f_dis.size())))
 
                 a_gen_loss = self.MSE(a_f_dis, r_labels)
                 b_gen_loss = self.MSE(b_f_dis, r_labels)
@@ -241,7 +241,7 @@ class CycleGAN:
                 # get a_fake and b_fake from fake pools
                 a_fake = Variable(torch.Tensor(self.a_fake_pool([a_fake.cpu().data.numpy()])[0]))
                 b_fake = Variable(torch.Tensor(self.b_fake_pool([b_fake.cpu().data.numpy()])[0]))
-                a_fake, b_fake = cuda([a_fake, b_fake])        
+                a_fake, b_fake = utils.cuda([a_fake, b_fake])        
 
                 # create labels from real and fake images
                 a_r_dis = self.Da(a_real)
@@ -249,8 +249,8 @@ class CycleGAN:
                 b_r_dis = self.Db(b_real)
                 b_f_dis = self.Db(b_fake)
 
-                r_labels = cuda(Variable(torch.ones(a_f_dis.size())))
-                f_labels = cuda(Variable(torch.zeros(a_f_dis.size())))
+                r_labels = utils.cuda(Variable(torch.ones(a_f_dis.size())))
+                f_labels = utils.cuda(Variable(torch.zeros(a_f_dis.size())))
 
                 # calculate d losses
                 a_d_r_loss = self.MSE(a_r_dis, r_labels)
