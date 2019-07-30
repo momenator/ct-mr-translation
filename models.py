@@ -112,7 +112,7 @@ class ItemPool(object):
 
 class CycleGAN:
     
-    def __init__(self, dataroot, sub_dirs, batch_sizes, workers, lr, betas, gpu_ids):
+    def __init__(self, dataroot, sub_dirs, batch_sizes, workers, lr, betas, gpu_ids, ckpt_dir, saved_imgs_dir):
         
         # prepare dataset
         (trA, trB, teA, teB) = utils.create_gan_datasets(dataroot, sub_dirs)        
@@ -156,14 +156,14 @@ class CycleGAN:
         self.a_fake_pool = ItemPool()
         self.b_fake_pool = ItemPool()
 
-        self.checkpoint_path = None
         self.start_epoch = 0
+        self.ckpt_dir = ckpt_dir
+        self.saved_imgs_dir = saved_imgs_dir
     
 
     def load_ckpt(self, checkpoint_path):
         try:
             ckpt = torch.load(checkpoint_path)
-            self.checkpoint_path = checkpoint_path
             self.start_epoch = ckpt['epoch']
             self.Da.load_state_dict(ckpt['Da'])
             self.Db.load_state_dict(ckpt['Db'])
@@ -291,13 +291,10 @@ class CycleGAN:
                           a_fake_test, 
                           b_rec_test], dim=0).data + 1) / 2.0
                 
-        save_dir = './gen_images'
-        torchvision.utils.save_image(pics, '%s/Epoch_(%d)_(%d).jpg' % (save_dir, epoch, iteration), nrow=3)
+        torchvision.utils.save_image(pics, '%s/Epoch_(%d)_(%d).jpg' % (self.saved_imgs_dir, epoch, iteration), nrow=3)
         
         if save_ckpt:
-          
-            checkpoint_path = './ckpt'
-
+            
             torch.save({
                 'epoch': epoch + 1,
                 'Da': self.Da.state_dict(),
@@ -308,5 +305,5 @@ class CycleGAN:
                 'db_optimizer': self.db_optimizer.state_dict(),
                 'ga_optimizer': self.ga_optimizer.state_dict(),
                 'gb_optimizer': self.gb_optimizer.state_dict()
-            }, '%s/Epoch_(%d)_(%d).ckpt' % (checkpoint_path, epoch + 1, iteration))        
+            }, '%s/Epoch_(%d)_(%d).ckpt' % (self.ckpt_dir, epoch + 1, iteration))        
 
