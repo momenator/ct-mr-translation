@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 import functools
 import numpy as np
@@ -180,10 +181,10 @@ class CycleGAN:
     
     def train(self, epochs=200, eval_steps=200):
         
-        for epoch in range(epochs):
-            
+        for epoch in range(self.start_epoch, epochs):
+                        
             for i, (a_real, b_real) in enumerate(zip(self.trA_l, self.trB_l)):
-
+                                
                 step = epoch * min(len(self.trA_l), len(self.trB_l)) + i + 1
 
                 # train Gx and Gy
@@ -193,15 +194,14 @@ class CycleGAN:
                 # wraps a_real and b_real
                 a_real = Variable(a_real[0])
                 b_real = Variable(b_real[0])
-                a_real, b_real = utils.cuda([a_real, b_real])
-
-                # create fakes and reconstructed images
+                a_real, b_real = cuda([a_real, b_real])
+                
                 a_fake = self.Ga(b_real)
                 b_fake = self.Gb(a_real)
-
+                
                 a_rec = self.Ga(b_fake)
                 b_rec = self.Gb(a_fake)
-
+                                
                 # calculate loss
 
                 # predict labels of fake images
@@ -209,10 +209,11 @@ class CycleGAN:
                 b_f_dis = self.Db(b_fake)
 
                 # set all labels as 1 as all are fakes
-                r_labels = utils.cuda(Variable(torch.ones(a_f_dis.size())))
+                r_labels = cuda(Variable(torch.ones(a_f_dis.size())))
 
                 a_gen_loss = self.MSE(a_f_dis, r_labels)
                 b_gen_loss = self.MSE(b_f_dis, r_labels)
+                
 
                 # recon loss
                 a_rec_loss = self.L1(a_rec, a_real)
@@ -229,16 +230,18 @@ class CycleGAN:
                 self.Gb.zero_grad()
                 
                 cg_loss.backward()
-                
+                                
                 self.ga_optimizer.step()
                 self.gb_optimizer.step()
+                
+                del cg_loss
 
                 # train Da and Db
 
                 # get a_fake and b_fake from fake pools
-                a_fake = Variable(torch.Tensor(a_fake_pool([a_fake.cpu().data.numpy()])[0]))
-                b_fake = Variable(torch.Tensor(b_fake_pool([b_fake.cpu().data.numpy()])[0]))
-                a_fake, b_fake = utils.cuda([a_fake, b_fake])        
+                a_fake = Variable(torch.Tensor(self.a_fake_pool([a_fake.cpu().data.numpy()])[0]))
+                b_fake = Variable(torch.Tensor(self.b_fake_pool([b_fake.cpu().data.numpy()])[0]))
+                a_fake, b_fake = cuda([a_fake, b_fake])        
 
                 # create labels from real and fake images
                 a_r_dis = self.Da(a_real)
@@ -246,15 +249,15 @@ class CycleGAN:
                 b_r_dis = self.Db(b_real)
                 b_f_dis = self.Db(b_fake)
 
-                r_labels = utils.cuda(Variable(torch.ones(a_f_dis.size())))
-                f_labels = utils.cuda(Variable(torch.zeros(a_f_dis.size())))
+                r_labels = cuda(Variable(torch.ones(a_f_dis.size())))
+                f_labels = cuda(Variable(torch.zeros(a_f_dis.size())))
 
                 # calculate d losses
-                a_d_r_loss = MSE(a_r_dis, r_labels)
-                a_d_f_loss = MSE(a_f_dis, f_labels)
-                b_d_r_loss = MSE(b_r_dis, r_labels)
-                b_d_f_loss = MSE(b_f_dis, f_labels)
-
+                a_d_r_loss = self.MSE(a_r_dis, r_labels)
+                a_d_f_loss = self.MSE(a_f_dis, f_labels)
+                b_d_r_loss = self.MSE(b_r_dis, r_labels)
+                b_d_f_loss = self.MSE(b_f_dis, f_labels)
+                
                 a_d_loss = a_d_r_loss + a_d_f_loss
                 b_d_loss = b_d_r_loss + b_d_f_loss
 
@@ -268,7 +271,10 @@ class CycleGAN:
                 self.ga_optimizer.step()
                 self.gb_optimizer.step()
                 
-                if (i + 100) % eval_steps:
+                del a_d_loss
+                del b_d_loss
+                
+                if i % eval_steps == 0:
                     self.evaluate(epoch, i, True)
     
     
@@ -294,7 +300,7 @@ class CycleGAN:
         torchvision.utils.save_image(pics, '%s/Epoch_(%d)_(%d).jpg' % (self.saved_imgs_dir, epoch, iteration), nrow=3)
         
         if save_ckpt:
-            
+
             torch.save({
                 'epoch': epoch + 1,
                 'Da': self.Da.state_dict(),
