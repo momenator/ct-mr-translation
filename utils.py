@@ -11,6 +11,27 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+class NpzDataset(data.Dataset):
+    def __init__(self, root):
+        self.root_folder = root
+        self.image_paths = os.listdir(root)
+
+    def __len__(self):
+        return len(self.image_paths)
+
+    def __getitem__(self, index):
+        # Select sample
+        image_path = self.image_paths[index]
+
+        # Load data and get label
+        image = np.load(self.root_folder + '/' + image_path)['data']
+        return image
+
+
+def create_dataset_npz(root):
+    return NpzDataset(root)
+
+
 def create_dataset(root):
     return dset.ImageFolder(root=root,
                             transform=transforms.Compose([
@@ -22,7 +43,6 @@ def create_dataset(root):
 def mkdir(paths):
     if not isinstance(paths, (list, tuple)):
         paths = list(paths)
-    print(paths)
     for path in paths:
         if not os.path.isdir(path):
             os.makedirs(path)
@@ -57,10 +77,10 @@ def create_gan_datasets(dataroot, sub_dirs):
     """
     dir_map = create_dir_map(dataroot, sub_dirs)
         
-    trainA = create_dataset(dir_map[sub_dirs[0]])
-    trainB = create_dataset(dir_map[sub_dirs[1]])
-    testA = create_dataset(dir_map[sub_dirs[2]])
-    testB = create_dataset(dir_map[sub_dirs[3]])
+    trainA = create_dataset_npz(dir_map[sub_dirs[0]])
+    trainB = create_dataset_npz(dir_map[sub_dirs[1]])
+    testA = create_dataset_npz(dir_map[sub_dirs[2]])
+    testB = create_dataset_npz(dir_map[sub_dirs[3]])
         
     return (trainA, trainB, testA, testB)
 
@@ -96,5 +116,4 @@ def cuda(xs):
         else:
             return [x.cuda() for x in xs]
     return xs
-
 
