@@ -22,7 +22,6 @@ def create_dataset(root):
 def mkdir(paths):
     if not isinstance(paths, (list, tuple)):
         paths = list(paths)
-    print(paths)
     for path in paths:
         if not os.path.isdir(path):
             os.makedirs(path)
@@ -96,5 +95,4 @@ def cuda(xs):
         else:
             return [x.cuda() for x in xs]
     return xs
-
 
