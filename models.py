@@ -279,7 +279,8 @@ class CycleGAN:
                 if i % eval_steps == 0:
                     self.evaluate(epoch, i, True)
     
-    def save_as_npz(output_dir, fake_a, fake_b, rec_a, rec_b):
+    
+    def save_as_npz(self, output_dir, fake_a, fake_b, rec_a, rec_b):
         np.savez(output_dir,
                  fake_a=fake_a, 
                  fake_b=fake_b, 
