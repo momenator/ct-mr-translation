@@ -4,6 +4,7 @@ import torchvision.datasets as dset
 import torchvision.transforms as transforms
 import torchvision.utils as vutils
 from torch.autograd import Variable
+from torch.utils import data
 
 import os
 import functools
@@ -25,13 +26,13 @@ class NpzDataset(data.Dataset):
 
         # Load data and get label
         image = np.load(self.root_folder + '/' + image_path)['data']
-        return image
+        return np.array([image]).astype(np.float32)
 
 
 def create_dataset_npz(root):
     return NpzDataset(root)
 
-
+# Deprecated for now
 def create_dataset(root):
     return dset.ImageFolder(root=root,
                             transform=transforms.Compose([
@@ -47,7 +48,7 @@ def mkdir(paths):
         if not os.path.isdir(path):
             os.makedirs(path)
 
-
+# deprecated for now
 def create_dir_map(root_dir, target_dirs):
     """
         Create a directory map for ImageFolder
@@ -70,13 +71,20 @@ def create_dir_map(root_dir, target_dirs):
     return dir_map
 
 
+def gen_dir_map(dataroot, sub_dirs):
+    dir_map = {}
+    for sub_dir in sub_dirs:
+        dir_map[sub_dir] = dataroot + '/' + sub_dir
+    return dir_map
+
+
 def create_gan_datasets(dataroot, sub_dirs):
     """
         Create 4 datasets for cycle GAN model
         return (trainA, trainB, testA, testB)
     """
-    dir_map = create_dir_map(dataroot, sub_dirs)
-        
+    dir_map = gen_dir_map(dataroot, sub_dirs)
+    
     trainA = create_dataset_npz(dir_map[sub_dirs[0]])
     trainB = create_dataset_npz(dir_map[sub_dirs[1]])
     testA = create_dataset_npz(dir_map[sub_dirs[2]])
