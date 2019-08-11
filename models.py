@@ -115,7 +115,7 @@ class ItemPool(object):
 
 class CycleGAN:
     
-    def __init__(self, dataroot, sub_dirs, batch_sizes, workers, lr, betas, gpu_ids, ckpt_dir, saved_imgs_dir):
+    def __init__(self, dataroot, sub_dirs, batch_sizes, workers, lr, betas, gpu_ids, ckpt_dir, results_dir):
         
         # prepare dataset
         (trA, trB, teA, teB) = utils.create_gan_datasets(dataroot, sub_dirs)        
@@ -161,7 +161,7 @@ class CycleGAN:
 
         self.start_epoch = 0
         self.ckpt_dir = ckpt_dir
-        self.saved_imgs_dir = saved_imgs_dir
+        self.results_dir = results_dir
     
 
     def load_ckpt(self, checkpoint_path):
@@ -306,7 +306,7 @@ class CycleGAN:
                           a_fake_test, 
                           b_rec_test], dim=0).data + 1) / 2.0
                 
-        torchvision.utils.save_image(pics, '%s/Epoch_(%d)_(%d).jpg' % (self.saved_imgs_dir, epoch, iteration), nrow=3)
+        torchvision.utils.save_image(pics, '%s/Epoch_(%d)_(%d).jpg' % (self.results_dir, epoch, iteration), nrow=3)
         save_path_npz = '%s/Epoch_(%d)_(%d).npz' % (save_dir, epoch, iteration)
         self.save_as_npz(save_path_npz, 
                          a_fake_test.cpu().data.numpy(), 
