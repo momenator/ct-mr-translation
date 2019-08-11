@@ -307,7 +307,7 @@ class CycleGAN:
                           b_rec_test], dim=0).data + 1) / 2.0
                 
         torchvision.utils.save_image(pics, '%s/Epoch_(%d)_(%d).png' % (self.results_dir, epoch, iteration), nrow=3)
-        save_path_npz = '%s/Epoch_(%d)_(%d).npz' % (save_dir, epoch, iteration)
+        save_path_npz = '%s/Epoch_(%d)_(%d).npz' % (self.results_dir, epoch, iteration)
         self.save_as_npz(save_path_npz, 
                          a_fake_test.cpu().data.numpy(), 
                          b_fake_test.cpu().data.numpy(), 
