@@ -49,7 +49,7 @@ class Discriminator(nn.Module):
         lrelu = functools.partial(nn.LeakyReLU, negative_slope=0.2)
         conv_lrelu = functools.partial(conv_norm, relu=lrelu)
 
-        self.ls = nn.Sequential(nn.Conv2d(3, dim, 4, 2, 1),
+        self.ls = nn.Sequential(nn.Conv2d(1, dim, 4, 2, 1),
                                 nn.LeakyReLU(0.2),
                                 conv_lrelu(dim * 1, dim * 2, 4, 2, 1),
                                 conv_lrelu(dim * 2, dim * 4, 4, 2, 1),
@@ -65,7 +65,7 @@ class Generator(nn.Module):
     def __init__(self, dim=64):
         super(Generator, self).__init__()
         self.ls = nn.Sequential(nn.ReflectionPad2d(3),
-                                conv_norm(3, dim * 1, 7, 1),
+                                conv_norm(1, dim * 1, 7, 1),
                                 conv_norm(dim * 1, dim * 2, 3, 2, 1),
                                 conv_norm(dim * 2, dim * 4, 3, 2, 1),
                                 Residual(dim * 4, dim * 4),
@@ -80,7 +80,7 @@ class Generator(nn.Module):
                                 deconv_norm(dim * 4, dim * 2, 3, 2, 1, 1),
                                 deconv_norm(dim * 2, dim * 1, 3, 2, 1, 1),
                                 nn.ReflectionPad2d(3),
-                                nn.Conv2d(dim, 3, 7, 1),
+                                nn.Conv2d(dim, 1, 7, 1),
                                 nn.Tanh())
 
     def forward(self, x):
@@ -153,8 +153,8 @@ class CycleGAN:
         utils.cuda([ self.Da, self.Db, self.Ga, self.Gb ])
 
         # train!
-        self.a_real_test = Variable(iter(teA_l).next()[0], volatile=True)
-        self.b_real_test = Variable(iter(teB_l).next()[0], volatile=True)
+        self.a_real_test = Variable(iter(teA_l).next(), volatile=True)
+        self.b_real_test = Variable(iter(teB_l).next(), volatile=True)
         self.a_real_test, self.b_real_test = utils.cuda([self.a_real_test, self.b_real_test])
         self.a_fake_pool = ItemPool()
         self.b_fake_pool = ItemPool()
@@ -194,8 +194,8 @@ class CycleGAN:
                 self.Gb.train()
 
                 # wraps a_real and b_real
-                a_real = Variable(a_real[0])
-                b_real = Variable(b_real[0])
+                a_real = Variable(a_real)
+                b_real = Variable(b_real)
                 a_real, b_real = utils.cuda([a_real, b_real])
                 
                 a_fake = self.Ga(b_real)
@@ -279,6 +279,13 @@ class CycleGAN:
                 if i % eval_steps == 0:
                     self.evaluate(epoch, i, True)
     
+    def save_as_npz(output_dir, fake_a, fake_b, rec_a, rec_b):
+        np.savez(output_dir,
+                 fake_a=fake_a, 
+                 fake_b=fake_b, 
+                 rec_a=rec_a, 
+                 rec_b=rec_b)
+
     
     def evaluate(self, epoch, iteration, save_ckpt=False):
         self.Ga.eval()
@@ -300,6 +307,12 @@ class CycleGAN:
                           b_rec_test], dim=0).data + 1) / 2.0
                 
         torchvision.utils.save_image(pics, '%s/Epoch_(%d)_(%d).jpg' % (self.saved_imgs_dir, epoch, iteration), nrow=3)
+        save_path_npz = '%s/Epoch_(%d)_(%d).npz' % (save_dir, epoch, iteration)
+        self.save_as_npz(save_path_npz, 
+                         a_fake_test.cpu().data.numpy(), 
+                         b_fake_test.cpu().data.numpy(), 
+                         a_rec_test.cpu().data.numpy(), 
+                         b_rec_test.cpu().data.numpy())
         
         if save_ckpt:
 
