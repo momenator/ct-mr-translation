@@ -10,7 +10,7 @@ betas=(0.5, 0.999)
 epochs = 200
 gpu_ids = [0]
 ckpt_dir = './ckpt/visceral'
-results_dir = '/results/visceral'
+results_dir = './results/visceral'
 
 # check cuda
 # print(torch.cuda.is_available())
