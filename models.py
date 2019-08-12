@@ -186,7 +186,9 @@ class CycleGAN:
         ckpt_paths = os.listdir(self.ckpt_dir)
         
         if len(ckpt_paths) >= keep_ckpt:
-            ckpt_paths = sorted(ckpt_paths)
+            # sort by time of creation
+            ckpt_paths = sorted(ckpt_paths, key=os.path.getmtime)
+            # delete earliest ckpt
             os.remove(ckpt_paths[0])
         
         torch.save({
