@@ -154,8 +154,10 @@ class CycleGAN:
         utils.cuda([ self.Da, self.Db, self.Ga, self.Gb ])
 
         # train!
-        self.a_real_test = Variable(iter(teA_l).next(), volatile=True)
-        self.b_real_test = Variable(iter(teB_l).next(), volatile=True)
+        with torch.no_grad():
+            self.a_real_test = Variable(iter(teA_l)p.next())
+            self.b_real_test = Variable(iter(teB_l).next())
+        
         self.a_real_test, self.b_real_test = utils.cuda([self.a_real_test, self.b_real_test])
         self.a_fake_pool = ItemPool()
         self.b_fake_pool = ItemPool()
@@ -184,6 +186,7 @@ class CycleGAN:
 
     def save_ckpt(self, epoch, iteration, keep_ckpt=2):
         ckpt_paths = os.listdir(self.ckpt_dir)
+        ckpt_paths = [ self.ckpt_dir + ckpt_path for ckpt_path in ckpt_paths ]
         
         if len(ckpt_paths) >= keep_ckpt:
             # sort by time of creation
