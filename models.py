@@ -154,9 +154,8 @@ class CycleGAN:
         utils.cuda([ self.Da, self.Db, self.Ga, self.Gb ])
 
         # train!
-        with torch.no_grad():
-            self.a_real_test = Variable(iter(teA_l)p.next())
-            self.b_real_test = Variable(iter(teB_l).next())
+        self.a_real_test = Variable(iter(teA_l).next())
+        self.b_real_test = Variable(iter(teB_l).next())
         
         self.a_real_test, self.b_real_test = utils.cuda([self.a_real_test, self.b_real_test])
         self.a_fake_pool = ItemPool()
