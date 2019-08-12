@@ -8,6 +8,7 @@ from torch.autograd import Variable
 import utils
 import itertools
 import copy
+import os
 
 
 def conv_norm(in_dim, out_dim, kernel_size, stride, padding=0, relu=nn.ReLU):
@@ -180,6 +181,28 @@ class CycleGAN:
             print("No checkpoint!")
             self.start_epoch = 0
 
+
+    def save_ckpt(self, epoch, iteration, keep_ckpt=2):
+        ckpt_paths = os.listdir(self.ckpt_dir)
+        
+        if len(ckpt_paths) >= keep_ckpt:
+            ckpt_paths = sorted(ckpt_paths)
+            os.remove(ckpt_paths[0])
+        
+        torch.save({
+            'epoch': epoch + 1,
+            'Da': self.Da.state_dict(),
+            'Db': self.Db.state_dict(),
+            'Ga': self.Ga.state_dict(),
+            'Gb': self.Gb.state_dict(),
+            'da_optimizer': self.da_optimizer.state_dict(),
+            'db_optimizer': self.db_optimizer.state_dict(),
+            'ga_optimizer': self.ga_optimizer.state_dict(),
+            'gb_optimizer': self.gb_optimizer.state_dict()
+        }, '%s/Epoch_(%d)_(%d).ckpt' % (self.ckpt_dir, epoch + 1, iteration))        
+
+
+
     
     def train(self, epochs=200, eval_steps=200):
         
@@ -279,7 +302,7 @@ class CycleGAN:
                 if i % eval_steps == 0:
                     self.evaluate(epoch, i, True)
     
-    
+
     def save_as_npz(self, output_dir, fake_a, fake_b, rec_a, rec_b):
         np.savez(output_dir,
                  fake_a=fake_a, 
@@ -316,16 +339,5 @@ class CycleGAN:
                          b_rec_test.cpu().data.numpy())
         
         if save_ckpt:
-
-            torch.save({
-                'epoch': epoch + 1,
-                'Da': self.Da.state_dict(),
-                'Db': self.Db.state_dict(),
-                'Ga': self.Ga.state_dict(),
-                'Gb': self.Gb.state_dict(),
-                'da_optimizer': self.da_optimizer.state_dict(),
-                'db_optimizer': self.db_optimizer.state_dict(),
-                'ga_optimizer': self.ga_optimizer.state_dict(),
-                'gb_optimizer': self.gb_optimizer.state_dict()
-            }, '%s/Epoch_(%d)_(%d).ckpt' % (self.ckpt_dir, epoch + 1, iteration))        
+            self.save_ckpt(epoch, iteration)
 
