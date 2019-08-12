@@ -184,6 +184,7 @@ class CycleGAN:
 
     def save_ckpt(self, epoch, iteration, keep_ckpt=2):
         ckpt_paths = os.listdir(self.ckpt_dir)
+        ckpt_paths = [ self.ckpt_dir + ckpt_path for ckpt_path in ckpt_paths ]
         
         if len(ckpt_paths) >= keep_ckpt:
             # sort by time of creation
