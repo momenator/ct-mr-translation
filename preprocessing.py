@@ -323,13 +323,30 @@ def crop_volume(volume, segmentation, remove_label_1=False):
     z_width = z_bounds[1] - z_bounds[0]
 
     if (x_width < dim):
-        padding=((((dim-x_width)//2),((dim-x_width)//2)), (0,0), (0,0))
-        cropped =np.pad(cropped, padding, mode='constant',constant_values=0)
+        # expand in x direction from original scan
+        pad = ((dim-x_width) // 2) + 1
+        cropped = volume[x_bounds[0] - pad : x_bounds[1] + pad, y_bounds[0]: y_bounds[1],:]
+        
+        x_width, _, _ = cropped.shape
+        
+        if (x_width < dim):
+            # still smaller than desired width so pad till >= 256
+            pad = ((dim-x_width) // 2) + 1
+            padding=((pad, pad), (0,0), (0,0))
+            cropped = np.pad(cropped, padding, mode='constant',constant_values=0)    
     
     if (z_width < dim):
-        padding=((0,0), (0,0), (((dim-z_width)//2),((dim-z_width)//2)))
-        cropped = np.pad(cropped, padding, mode='constant',constant_values=0)
-
+        pad = ((dim - z_width) // 2) + 1
+        
+        cropped = cropped[:, :, (z_bounds[0] - pad): (z_bounds[1] + pad)]
+        
+        _, _, z_width = cropped.shape
+        
+        if (z_width < dim):
+            pad = ((dim - z_width) // 2) + 1
+            padding=((0,0), (0,0), (pad, pad))
+            cropped = np.pad(cropped, padding, mode='constant',constant_values=0)
+    
     return cropped
 
 
