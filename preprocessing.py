@@ -299,6 +299,16 @@ def crop_volume(volume, segmentation, remove_label_1=False):
     # There is a trace segmentation labelled 1
     if remove_label_1:
         seg_not_zero = np.where((segmentation != 0) & (segmentation != 1))
+        
+        # there is an issue where seq_not_zero return empty arrays
+        # in which just get the indices of non 0 values
+        try:
+            assert(len(seg_not_zero) == 3)
+            assert(seg_not_zero[0].shape[0] > 0)
+            assert(seg_not_zero[1].shape[0] > 0)
+            assert(seg_not_zero[2].shape[0] > 0)
+        except:
+            seg_not_zero = np.where(segmentation != 0)
     else:
         seg_not_zero = np.where(segmentation != 0)
 
