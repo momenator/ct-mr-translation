@@ -295,8 +295,12 @@ def pad_img_to_square(M,val=0):
     return np.pad(M,padding,mode='constant',constant_values=val)
 
 
-def crop_volume(volume, segmentation):
-    seg_not_zero = np.where(segmentation != 0)
+def crop_volume(volume, segmentation, remove_label_1=False):
+    # There is a trace segmentation labelled 1
+    if remove_label_1:
+        seg_not_zero = np.where((segmentation != 0) & (segmentation != 1))
+    else:
+        seg_not_zero = np.where(segmentation != 0)
 
     x_bounds = (np.min(seg_not_zero[0]), np.max(seg_not_zero[0]))
     y_bounds = (np.min(seg_not_zero[1]), np.max(seg_not_zero[1]))

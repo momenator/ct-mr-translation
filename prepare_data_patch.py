@@ -3,11 +3,11 @@
     Init data structure
     ./data/visceral
         /train
-        /test
+        /train
         /annotations
     
     Steps
-    1. loop through train/test
+    1. loop through train/train
     2. aggregate segmentation
     3. 
 """
@@ -44,13 +44,14 @@ for scan_path in npz_file_paths:
     scan_name = scan_path.replace(".npz", "").split('/')[-1]
     seg_path = train_seg_path + '/' + scan_name + '.npz'
     is_ct = is_ct_file(scan_path)
+    is_mr = not is_ct
 
     print(scan_name, is_ct)
     scan = np.load(scan_path)['data']
     seg = np.load(seg_path)['data']
 
     # crop scan
-    cropped_scan = crop_volume(scan, seg)
+    cropped_scan = crop_volume(scan, seg, is_mr)
 
     # get all patches
     # all_patches = get_all_patches(cropped_scan)
