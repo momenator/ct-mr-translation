@@ -8,6 +8,7 @@ from scipy.ndimage import zoom
 import os
 import shutil
 import math
+from patchify import *
 
 
 def resample_img(itk_image, out_spacing=[1.0, 1.0, 1.0]):
@@ -136,7 +137,11 @@ def get_images_given_path(paths, data_type):
     return images
 
 
-def prepare_npz_from_volume(scan_paths=[], ext_name='', save_dir=''):
+def normalise_scan(scan):
+    return (scan - scan.mean()) / scan.std()
+
+
+def prepare_volume_as_npz(scan_paths=[], ext_name='', save_dir=''):
     """
         prepare npzs file from volumes
     """
@@ -144,18 +149,28 @@ def prepare_npz_from_volume(scan_paths=[], ext_name='', save_dir=''):
         scan_path_stripped = str(scan_path).strip(ext_name)
         scan_name = scan_path_stripped.split('/')[-1]
 
+        print(scan_name)
+
         current_scan = get_image_given_path(scan_path)
         
         # resample
         resampled_scan = resample_img(current_scan, [1, 1, 1])
 
+        # normalise - Gaussian with zero mean and unit variance
+        normalised_scan = normalise_scan(sitk.GetArrayFromImage(resampled_scan))
+
         # save array
-        save_image_as_npz(resampled_scan, save_dir + '/' + scan_name)
+        save_image_as_npz(normalised_scan, save_dir + '/' + scan_name, is_numpy_arr=True)
 
 
-def save_image_as_npz(image, output_dir):
-    image_arr = sitk.GetArrayFromImage(image)
+def save_image_as_npz(image, output_dir, is_numpy_arr=False):
+    if is_numpy_arr: 
+        image_arr = image
+    else:
+        image_arr = sitk.GetArrayFromImage(image)
+    
     np.savez(output_dir, data=image_arr)
+
 
 
 def combine_segmentations(segs):
@@ -280,3 +295,50 @@ def pad_img_to_square(M,val=0):
         padding=(((b-a)//2, (b-a)//2),(0,0))
     return np.pad(M,padding,mode='constant',constant_values=val)
 
+
+def crop_volume(volume, segmentation):
+    seg_not_zero = np.where(segmentation != 0)
+
+    x_bounds = (np.min(seg_not_zero[0]), np.max(seg_not_zero[0]))
+    y_bounds = (np.min(seg_not_zero[1]), np.max(seg_not_zero[1]))
+    z_bounds = (np.min(seg_not_zero[2]), np.max(seg_not_zero[2]))
+
+    return volume[x_bounds[0]: x_bounds[1], y_bounds[0]: y_bounds[1], z_bounds[0]: z_bounds[1]]
+
+
+def get_all_patches(volume, side='c', dim=256):
+    """
+        side = either 'c', 'a', 's'
+        a - axial
+        c - coronal
+        s - sagittal
+    """
+    a, c, s = volume.shape
+    all_patches = []
+    
+    if side == 'a':
+        count = a
+    elif side == 'c':
+        count = c
+    else:
+        count = s
+    
+    for i in range(count):
+        if side == 'a':
+            scan_slice = volume[i,:,:]
+        elif side == 'c':
+            scan_slice = volume[:,i,:]
+        else:
+            scan_slice = volume[:,:,i]
+        patches = get_patches_from_2d_img(scan_slice)
+        all_patches.append(patches)
+    
+    all_patches = np.array(all_patches).reshape(-1, dim, dim)
+    
+    return all_patches
+
+def get_patches_from_2d_img(image, dim=256, step=64):
+    patches = patchify(image, (dim, dim), step=step)
+    _, _, x, y = patches.shape
+    patches = patches.reshape(-1, x, y) 
+    return patches
