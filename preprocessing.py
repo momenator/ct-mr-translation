@@ -316,7 +316,21 @@ def crop_volume(volume, segmentation, remove_label_1=False):
     y_bounds = (np.min(seg_not_zero[1]), np.max(seg_not_zero[1]))
     z_bounds = (np.min(seg_not_zero[2]), np.max(seg_not_zero[2]))
 
-    return volume[x_bounds[0]: x_bounds[1], y_bounds[0]: y_bounds[1], z_bounds[0]: z_bounds[1]]
+    cropped = volume[x_bounds[0]: x_bounds[1], y_bounds[0]: y_bounds[1], z_bounds[0]: z_bounds[1]]
+    
+    dim=256
+    x_width = x_bounds[1] - x_bounds[0]
+    z_width = z_bounds[1] - z_bounds[0]
+
+    if (x_width < dim):
+        padding=((((dim-x_width)//2),((dim-x_width)//2)), (0,0), (0,0))
+        cropped =np.pad(cropped, padding, mode='constant',constant_values=0)
+    
+    if (z_width < dim):
+        padding=((0,0), (0,0), (((dim-z_width)//2),((dim-z_width)//2)))
+        cropped = np.pad(cropped, padding, mode='constant',constant_values=0)
+
+    return cropped
 
 
 def get_all_patches(volume, side='c', dim=256):
