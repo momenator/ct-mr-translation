@@ -11,7 +11,7 @@ import math
 from patchify import *
 
 
-def resample_img(itk_image, out_spacing=[1.0, 1.0, 1.0]):
+def resample_img(itk_image, out_spacing=[1.0, 1.0, 1.0], interpolator=sitk.sitkBSpline):
     """
         itk_image = itk scan (3d volume) object
         out_spacing = desired spacing of itk_image
@@ -39,8 +39,7 @@ def resample_img(itk_image, out_spacing=[1.0, 1.0, 1.0]):
     resample.SetDefaultPixelValue(itk_image.GetPixelIDValue())
 
     # 4. interpolate
-    # resample.SetInterpolator(sitk.sitkNearestNeighbor)
-    resample.SetInterpolator(sitk.sitkBSpline)
+    resample.SetInterpolator(interpolator)
 
     return resample.Execute(itk_image)
 
@@ -207,7 +206,7 @@ def prepare_seg_as_npz(seg_path, scan_names, output_dir):
         seg_paths = get_image_paths_given_substr(seg_path, scan_name)
         segs = get_images_given_path(seg_paths, data_type=sitk.sitkUInt8)
         combined_segs = combine_segmentations(segs)
-        combined_segs = resample_img(combined_segs, [1, 1, 1])
+        combined_segs = resample_img(combined_segs, [1, 1, 1], sitk.sitkNearestNeighbor)
         save_image_as_npz(combined_segs, output_dir + '/' + scan_name)
 
 
