@@ -2,3 +2,5 @@
 __pycache__
 data
 .ipynb_checkpoints/
+
+fake_scans/
