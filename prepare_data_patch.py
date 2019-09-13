@@ -1,15 +1,5 @@
 """
-    Init:
-    Init data structure
-    ./data/visceral
-        /train
-        /train
-        /annotations
-    
-    Steps
-    1. loop through train/train
-    2. aggregate segmentation
-    3. 
+    DEPRECATED - DO NOT USE
 """
 
 from preprocessing import *
