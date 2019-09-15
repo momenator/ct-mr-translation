@@ -36,7 +36,7 @@ def get_patches(scan_path, scan_name, crops):
         scan = scan[idx[0]:idx[1], idx[2]:idx[3], idx[4]: idx[5]]
     
     # get all patches
-    all_patches = get_all_patches(scan)
+    all_patches = get_all_patches(scan, side='c', dim=256, step=(128, 128))
     
     print(all_patches.shape)
 

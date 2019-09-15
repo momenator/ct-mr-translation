@@ -362,7 +362,7 @@ def crop_volume(volume, segmentation, remove_label_1=False):
     return cropped
 
 
-def get_all_patches(volume, side='c', dim=256):
+def get_all_patches(volume, side='c', dim=256, step=(128, 128)):
     """
         side = either 'c', 'a', 's'
         a - axial
@@ -386,7 +386,7 @@ def get_all_patches(volume, side='c', dim=256):
             scan_slice = volume[:,i,:]
         else:
             scan_slice = volume[:,:,i]
-        patches = get_patches_from_2d_img(scan_slice, dim, (128, 32))
+        patches = get_patches_from_2d_img(scan_slice, dim, step)
         all_patches.append(patches)
     
     all_patches = np.array(all_patches).reshape(-1, dim, dim)
