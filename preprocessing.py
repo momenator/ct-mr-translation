@@ -138,15 +138,15 @@ def get_images_given_path(paths, data_type):
 
 # center data and normalise to -1 and 1
 def normalise_scan(scan):
-    # center data
-    scan = scan - scan.mean()
+    # set data to zero mean and unit variance
+    scan = (scan - scan.mean()) / scan.std()
     
     # normalise to -1 and 1
     scan = 2 * ((scan - np.min(scan)) / (np.max(scan) - np.min(scan))) - 1
     return scan
 
 
-def prepare_volume_as_npz(scan_paths=[], ext_name='', save_dir=''):
+def prepare_volume_as_npz(scan_paths=[], ext_name='', save_dir='', crops=None):
     """
         prepare npzs file from volumes
     """
@@ -164,8 +164,14 @@ def prepare_volume_as_npz(scan_paths=[], ext_name='', save_dir=''):
         # normalise - Gaussian with zero mean and unit variance
         normalised_scan = normalise_scan(sitk.GetArrayFromImage(resampled_scan))
 
+        final_scan = normalised_scan
+
+        if crops is not None and crops.item().get(scan_name) is not None:
+            idx = crops.item().get(scan_name)
+            final_scan = final_scan[idx[0]: idx[1], idx[2]: idx[3], idx[4]: idx[5]]
+
         # save array
-        save_image_as_npz(normalised_scan, save_dir + '/' + scan_name, is_numpy_arr=True)
+        save_image_as_npz(final_scan, save_dir + '/' + scan_name, is_numpy_arr=True)
 
 
 def save_image_as_npz(image, output_dir, is_numpy_arr=False):
@@ -366,7 +372,7 @@ def get_all_patches(volume, side='c', dim=256):
     a, c, s = volume.shape
     all_patches = []
     
-    if side == 'a':
+    if side == 's':
         count = a
     elif side == 'c':
         count = c
@@ -374,7 +380,7 @@ def get_all_patches(volume, side='c', dim=256):
         count = s
     
     for i in range(count):
-        if side == 'a':
+        if side == 's':
             scan_slice = volume[i,:,:]
         elif side == 'c':
             scan_slice = volume[:,i,:]

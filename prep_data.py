@@ -43,7 +43,7 @@ def get_patches(scan_path, scan_name, crops):
     return all_patches
 
 
-def prepare_data(root_path, is_train = True):
+def prepare_data(root_path, crops, is_train = True):
 
     data_type = 'train'
     if is_train is False:
@@ -66,41 +66,45 @@ def prepare_data(root_path, is_train = True):
     os.makedirs(dom_a_path, exist_ok=True)
     os.makedirs(dom_b_path, exist_ok=True)
 
-    print("Converting zipped nii to npz")
-    prepare_volume_as_npz(scan_paths_train, nii_ext_name, train_path)
+    print("Converting zipped nii to npz with crops")
+    prepare_volume_as_npz(scan_paths_train, nii_ext_name, train_path, crops)
 
     # print("Getting all segmentations")
     # prepare_seg_as_npz(seg_root_path, scan_names, train_seg_path)
 
-    print("Processing npz volume files to npz image slices")
-    npz_file_paths = get_image_paths_given_substr(train_path, '.npz')
-
-    crops = np.load('./crop_idx.npz', allow_pickle=True)['data']
-
-    for scan_path in npz_file_paths:
-        scan_name = scan_path.replace(".npz", "").split('/')[-1]
-        # seg_path = train_seg_path + '/' + scan_name + '.npz'
-        is_ct = is_ct_file(scan_path)
-        is_mr = not is_ct
-
-        # get all patches
-        all_patches = get_patches(scan_path, scan_name, crops)
-
-        for i, patch in enumerate(all_patches):
-            dom_path = dom_b_path
+    # only generate slices when preparing training data!
+    if is_train is True:
         
-            if (is_ct):
-                dom_path = dom_a_path
-
-            save_path = dom_path + '/' + scan_name + '_' + str(i) + '.npz'
+        print("Processing npz volume files to npz image slices")
         
-            # patch = resize_img(patch, 128)
-            np.savez(save_path, data=patch)
+        npz_file_paths = get_image_paths_given_substr(train_path, '.npz')
+
+        for scan_path in npz_file_paths:
+            scan_name = scan_path.replace(".npz", "").split('/')[-1]
+            # seg_path = train_seg_path + '/' + scan_name + '.npz'
+            is_ct = is_ct_file(scan_path)
+            is_mr = not is_ct
+
+            # get all patches
+            all_patches = get_patches(scan_path, scan_name, crops)
+
+            for i, patch in enumerate(all_patches):
+                dom_path = dom_b_path
+            
+                if (is_ct):
+                    dom_path = dom_a_path
+
+                save_path = dom_path + '/' + scan_name + '_' + str(i) + '.npz'
+            
+                # patch = resize_img(patch, 128)
+                np.savez(save_path, data=patch)
 
 
 if __name__ == '__main__':
+    crops = np.load('./visceral_crops.npz', allow_pickle=True)['data']
+
     # prepare train data here
-    prepare_data('./data/visceral_full')
+    prepare_data('./data/visceral_full', crops)
     
     # prepare test data here
-    prepare_data('./data/visceral_full', is_train=False)
+    prepare_data('./data/visceral_full', crops, is_train=False)
