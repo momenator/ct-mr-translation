@@ -177,8 +177,7 @@ def denormalise_scan(nrml_scan, mean, std, min_val, max_val):
 def get_numpy_scan(scan_img):
     # itk image gets converted to numpy array! order is (z, y, x) for some reason
     numpy_scan = sitk.GetArrayFromImage(scan_img)
-    z, y, x = numpy_scan.shape
-    numpy_w_fixed_axes = numpy_scan.reshape(x, y, z)
+    numpy_w_fixed_axes = numpy_scan.T
     return numpy_w_fixed_axes
 
 
@@ -411,7 +410,7 @@ def get_all_patches(volume, side='c', dim=256, step=(128, 128)):
         c - coronal
         s - sagittal
     """
-    s, c, a = volume.shape
+    a, c, s = volume.shape
     all_patches = []
     
     if side == 's':
