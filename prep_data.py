@@ -101,10 +101,20 @@ def prepare_data(root_path, crops, is_train = True):
 
 
 if __name__ == '__main__':
-    crops = np.load('./visceral_crops.npz', allow_pickle=True)['data']
+
+    data_path = './data/visceral_full'
+    crop_path = './visceral_crops.npz'
+
+    """
+    data_path = './data/ct_mr_nrad'
+    crop_path = './crop_new_idx.npz'
+    """
+
+    crops = np.load(crop_path, allow_pickle=True)['data']
 
     # prepare train data here
-    prepare_data('./data/visceral_full', crops)
+    prepare_data(data_path, crops)
     
     # prepare test data here
-    prepare_data('./data/visceral_full', crops, is_train=False)
+    prepare_data(data_path, crops, is_train=False)
+
