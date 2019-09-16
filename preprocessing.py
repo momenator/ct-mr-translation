@@ -136,14 +136,42 @@ def get_images_given_path(paths, data_type):
         images.append(curr)
     return images
 
+
+def normalise_zero_mean_unit_var(arr):
+    mean = arr.mean()
+    std = arr.std()
+    return (arr - mean) / std, mean, std
+
+
+def denormalise_zero_mean_unit_var(arr, mean, std):
+    return arr * std + mean
+
+
+# normalise to [-1 1]
+def normalise_tanh(arr):
+    min_val = np.min(arr)
+    max_val = np.max(arr)
+    return 2 * ((arr - np.min(arr)) / (np.max(arr) - np.min(arr))) - 1, min_val, max_val
+
+
+def denormalise_tanh(arr, min_val, max_val):
+    return ((arr + 1) / 2) * (max_val - min_val) + min_val
+
+
 # center data and normalise to -1 and 1
 def normalise_scan(scan):
     # set data to zero mean and unit variance
-    scan = (scan - scan.mean()) / scan.std()
+    normalised_scan, mean, std = normalise_zero_mean_unit_var(scan)
     
     # normalise to -1 and 1
-    scan = 2 * ((scan - np.min(scan)) / (np.max(scan) - np.min(scan))) - 1
-    return scan
+    # min_val and max_val are the min and max values of normalised numpy array
+    normalised_scan, min_val, max_val = normalise_tanh(normalised_scan)
+    return normalised_scan, mean, std, min_val, max_val
+
+
+def denormalise_scan(nrml_scan, mean, std, min_val, max_val):
+    denormalised = denormalise_tanh(nrml_scan, min_val, max_val)
+    return denormalise_zero_mean_unit_var(denormalised, mean, std)
 
 
 def get_numpy_scan(scan_img):
@@ -164,6 +192,9 @@ def prepare_volume_as_npz(scan_paths=[], ext_name='', save_dir='', crops=None):
 
         print(scan_name)
 
+        if crops is not None and crops.item().get(scan_name) is None:
+            continue
+
         current_scan = get_image_given_path(scan_path)
         
         # resample
@@ -173,7 +204,7 @@ def prepare_volume_as_npz(scan_paths=[], ext_name='', save_dir='', crops=None):
         resampled_scan = get_numpy_scan(resampled_scan)
 
         # normalise - Gaussian with zero mean and unit variance then scaled to [-1, 1]
-        normalised_scan = normalise_scan(resampled_scan))
+        normalised_scan, mean, std, min_val, max_val = normalise_scan(resampled_scan)
 
         final_scan = normalised_scan
 
@@ -181,8 +212,8 @@ def prepare_volume_as_npz(scan_paths=[], ext_name='', save_dir='', crops=None):
             idx = crops.item().get(scan_name)
             final_scan = final_scan[idx[4]: idx[5], idx[2]: idx[3], idx[0]: idx[1]]
 
-        # save array
-        save_image_as_npz(final_scan, save_dir + '/' + scan_name, is_numpy_arr=True)
+            # save array
+            np.savez(save_dir + '/' + scan_name, data=final_scan, mean=mean, std=std, min_val=min_val, max_val=max_val)
 
 
 def save_image_as_npz(image, output_dir, is_numpy_arr=False):
