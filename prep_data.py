@@ -24,17 +24,17 @@ import numpy as np
     Then transfer trainA, trainB, testA, testB to CycleGAN/datasets/name_of_data
 """
 
-def get_patches(scan_path, scan_name, crops):
+def get_patches(scan_path, scan_name):
     scan = np.load(scan_path)['data']
 
     # crop scan using segmentation - currently not in use
     # seg = np.load(seg_path)['data']
     # cropped_scan = crop_volume(scan, seg, is_mr)
-    
+    """
     if crops.item().get(scan_name) is not None:    
         idx = crops.item().get(scan_name)
         scan = scan[idx[0]:idx[1], idx[2]:idx[3], idx[4]: idx[5]]
-    
+    """
     # get all patches
     all_patches = get_all_patches(scan, side='c', dim=256, step=(128, 128))
     
@@ -86,7 +86,7 @@ def prepare_data(root_path, crops, is_train = True):
             is_mr = not is_ct
 
             # get all patches
-            all_patches = get_patches(scan_path, scan_name, crops)
+            all_patches = get_patches(scan_path, scan_name)
 
             for i, patch in enumerate(all_patches):
                 dom_path = dom_b_path
