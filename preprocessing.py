@@ -392,11 +392,11 @@ def get_all_patches(volume, side='c', dim=256, step=(128, 128)):
     
     for i in range(count):
         if side == 's':
-            scan_slice = volume[i,:,:]
+            scan_slice = volume[:,:,i]
         elif side == 'c':
             scan_slice = volume[:,i,:]
         else:
-            scan_slice = volume[:,:,i]
+            scan_slice = volume[i,:,:]
         patches = get_patches_from_2d_img(scan_slice, dim, step)
         all_patches.append(patches)
     
