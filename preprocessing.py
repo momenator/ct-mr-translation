@@ -146,6 +146,14 @@ def normalise_scan(scan):
     return scan
 
 
+def get_numpy_scan(scan_img):
+    # itk image gets converted to numpy array! order is (z, y, x) for some reason
+    numpy_scan = sitk.GetArrayFromImage(scan_img)
+    z, y, x = numpy_scan.shape
+    numpy_w_fixed_axes = numpy_scan.reshape(x, y, z)
+    return numpy_w_fixed_axes
+
+
 def prepare_volume_as_npz(scan_paths=[], ext_name='', save_dir='', crops=None):
     """
         prepare npzs file from volumes
@@ -161,14 +169,17 @@ def prepare_volume_as_npz(scan_paths=[], ext_name='', save_dir='', crops=None):
         # resample
         resampled_scan = resample_img(current_scan, [1, 1, 1])
 
-        # normalise - Gaussian with zero mean and unit variance
-        normalised_scan = normalise_scan(sitk.GetArrayFromImage(resampled_scan))
+        # convert to numpy and fix axes!
+        resampled_scan = get_numpy_scan(resampled_scan)
+
+        # normalise - Gaussian with zero mean and unit variance then scaled to [-1, 1]
+        normalised_scan = normalise_scan(resampled_scan))
 
         final_scan = normalised_scan
 
         if crops is not None and crops.item().get(scan_name) is not None:
             idx = crops.item().get(scan_name)
-            final_scan = final_scan[idx[0]: idx[1], idx[2]: idx[3], idx[4]: idx[5]]
+            final_scan = final_scan[idx[4]: idx[5], idx[2]: idx[3], idx[0]: idx[1]]
 
         # save array
         save_image_as_npz(final_scan, save_dir + '/' + scan_name, is_numpy_arr=True)
@@ -369,15 +380,15 @@ def get_all_patches(volume, side='c', dim=256, step=(128, 128)):
         c - coronal
         s - sagittal
     """
-    a, c, s = volume.shape
+    s, c, a = volume.shape
     all_patches = []
     
     if side == 's':
-        count = a
+        count = s
     elif side == 'c':
         count = c
     else:
-        count = s
+        count = a
     
     for i in range(count):
         if side == 's':
