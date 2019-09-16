@@ -24,7 +24,7 @@ import numpy as np
     Then transfer trainA, trainB, testA, testB to CycleGAN/datasets/name_of_data
 """
 
-def get_patches(scan_path, scan_name):
+def get_patches(scan_path, scan_name, side='c', patch_size=256, patch_step=(128, 128)):
     scan = np.load(scan_path)['data']
 
     # crop scan using segmentation - currently not in use
@@ -36,14 +36,14 @@ def get_patches(scan_path, scan_name):
         scan = scan[idx[0]:idx[1], idx[2]:idx[3], idx[4]: idx[5]]
     """
     # get all patches
-    all_patches = get_all_patches(scan, side='c', dim=256, step=(128, 128))
+    all_patches = get_all_patches(scan, side=side, dim=patch_size, step=patch_step)
     
     print(all_patches.shape)
 
     return all_patches
 
 
-def prepare_data(root_path, crops, is_train = True):
+def prepare_data(root_path, crops, is_train = True, is_prep_npz=True, side='c', patch_size=256, patch_step=(128, 128)):
 
     data_type = 'train'
     if is_train is False:
@@ -65,9 +65,10 @@ def prepare_data(root_path, crops, is_train = True):
     # os.makedirs(train_seg_path, exist_ok=True)
     os.makedirs(dom_a_path, exist_ok=True)
     os.makedirs(dom_b_path, exist_ok=True)
-
-    print("Converting zipped nii to npz with crops")
-    prepare_volume_as_npz(scan_paths_train, nii_ext_name, train_path, crops)
+    
+    if is_prep_npz is True:
+        print("Converting zipped nii to npz with crops")
+        prepare_volume_as_npz(scan_paths_train, nii_ext_name, train_path, crops)
 
     # print("Getting all segmentations")
     # prepare_seg_as_npz(seg_root_path, scan_names, train_seg_path)
@@ -81,12 +82,15 @@ def prepare_data(root_path, crops, is_train = True):
 
         for scan_path in npz_file_paths:
             scan_name = scan_path.replace(".npz", "").split('/')[-1]
+            print(scan_name)
             # seg_path = train_seg_path + '/' + scan_name + '.npz'
-            is_ct = is_ct_file(scan_path)
+            # is_ct = is_ct_file(scan_path) - for visceral
+            # is_ct = 'T1' not in scan_path - for ct_mr_nrad
+            is_ct = 'T1' not in scan_path
             is_mr = not is_ct
 
             # get all patches
-            all_patches = get_patches(scan_path, scan_name)
+            all_patches = get_patches(scan_path, scan_name, side=side, patch_size=patch_size, patch_step=patch_step)
 
             for i, patch in enumerate(all_patches):
                 dom_path = dom_b_path
@@ -101,20 +105,20 @@ def prepare_data(root_path, crops, is_train = True):
 
 
 if __name__ == '__main__':
-
+    """
     data_path = './data/visceral_full'
     crop_path = './visceral_crops.npz'
-
     """
+    
     data_path = './data/ct_mr_nrad'
-    crop_path = './crop_new_idx.npz'
-    """
+    crop_path = './ct_mr_nrad_crops.npz'
+    
 
     crops = np.load(crop_path, allow_pickle=True)['data']
 
     # prepare train data here
-    prepare_data(data_path, crops)
-    
+    prepare_data(data_path, crops, is_train=True, is_prep_npz=True, side='s', patch_size=128, patch_step=(32, 100))
+
     # prepare test data here
-    prepare_data(data_path, crops, is_train=False)
+    prepare_data(data_path, crops, is_train=False, is_prep_npz=True)
 
