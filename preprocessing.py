@@ -211,8 +211,8 @@ def prepare_volume_as_npz(scan_paths=[], ext_name='', save_dir='', crops=None):
             idx = crops.item().get(scan_name)
             final_scan = final_scan[idx[4]: idx[5], idx[2]: idx[3], idx[0]: idx[1]]
 
-            # save array
-            np.savez(save_dir + '/' + scan_name, data=final_scan, mean=mean, std=std, min_val=min_val, max_val=max_val)
+        # save array
+        np.savez(save_dir + '/' + scan_name, data=final_scan, mean=mean, std=std, min_val=min_val, max_val=max_val)
 
 
 def save_image_as_npz(image, output_dir, is_numpy_arr=False):
