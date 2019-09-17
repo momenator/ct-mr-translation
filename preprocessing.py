@@ -178,6 +178,7 @@ def get_numpy_scan(scan_img):
     # itk image gets converted to numpy array! order is (z, y, x) for some reason
     numpy_scan = sitk.GetArrayFromImage(scan_img)
     numpy_w_fixed_axes = numpy_scan.T
+    numpy_w_fixed_axes = numpy_w_fixed_axes[:, :, ::-1]
     return numpy_w_fixed_axes
 
 
