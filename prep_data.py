@@ -39,7 +39,7 @@ def get_patches(scan_path, scan_name, side='c', patch_size=256, patch_step=(128,
     return all_patches
 
 
-def prepare_data(root_path, crops, is_train = True, is_prep_npz=True, side='c', patch_size=256, patch_step=(128, 128)):
+def prepare_data(root_path, crops, is_train = True, is_prep_npz=True, is_prep_seg=False, side='c', patch_size=256, patch_step=(128, 128)):
 
     data_type = 'train'
     if is_train is False:
@@ -51,23 +51,27 @@ def prepare_data(root_path, crops, is_train = True, is_prep_npz=True, side='c', 
     dom_a_path = train_path + '/{}A'.format(data_type) # CT
     dom_b_path = train_path + '/{}B'.format(data_type) # MR
     
-    # train_seg_path = train_path + '/annotations'
-    # seg_root_path = root_path + '/annotations'
+    train_seg_path = train_path + '/annotations'
+    seg_root_path = root_path + '/annotations'
     
     nii_ext_name = '.nii.gz'
     scan_paths_train = get_image_paths_given_substr(train_path, '.nii')
     scan_names = [ p.split('/')[-1].strip('.nii.gz') for p in scan_paths_train ]
 
     # os.makedirs(train_seg_path, exist_ok=True)
-    os.makedirs(dom_a_path, exist_ok=True)
-    os.makedirs(dom_b_path, exist_ok=True)
+    # os.makedirs(dom_a_path, exist_ok=True)
+    # os.makedirs(dom_b_path, exist_ok=True)
     
     if is_prep_npz is True:
         print("Converting zipped nii to npz with crops")
+        os.makedirs(dom_a_path, exist_ok=True)
+        os.makedirs(dom_b_path, exist_ok=True)
         prepare_volume_as_npz(scan_paths_train, nii_ext_name, train_path, crops)
-
-    # print("Getting all segmentations")
-    # prepare_seg_as_npz(seg_root_path, scan_names, train_seg_path)
+        
+    if is_prep_seg is True:
+        print("Getting all segmentations")
+        os.makedirs(train_seg_path, exist_ok=True)
+        prepare_seg_as_npz(seg_root_path, scan_names, train_seg_path, crops)
 
     # only generate slices when preparing training data!
     if is_train is True:
@@ -101,17 +105,17 @@ def prepare_data(root_path, crops, is_train = True, is_prep_npz=True, side='c', 
 
 
 if __name__ == '__main__':
-    # data_path = './data/visceral_full'
-    # crop_path = './visceral_crops.npz'
+    data_path = './data/visceral_full'
+    crop_path = './visceral_crops.npz'
     
-    data_path = './data/ct_mr_nrad'
-    crop_path = './ct_mr_nrad_crops.npz'
+    # data_path = './data/ct_mr_nrad'
+    # crop_path = './ct_mr_nrad_crops.npz'
     
     crops = np.load(crop_path, allow_pickle=True)['data']
 
     # prepare train data here
-    prepare_data(data_path, crops, is_train=True, is_prep_npz=True, side='c', patch_size=256, patch_step=(64, 64))
+    # prepare_data(data_path, crops, is_train=True, is_prep_npz=True, is_prep_seg=False, side='c', patch_size=256, patch_step=(64, 64))
 
     # # prepare test data here
-    prepare_data(data_path, None, is_train=False, is_prep_npz=True)
+    prepare_data(data_path, crops, is_train=False, is_prep_npz=False, is_prep_seg=True)
 

@@ -254,13 +254,20 @@ def is_ct_file(file_path):
     return 'ct' in file_path.lower()
 
 
-def prepare_seg_as_npz(seg_path, scan_names, output_dir):
+def prepare_seg_as_npz(seg_path, scan_names, output_dir, crops):
     for scan_name in scan_names:
+        print(scan_name)
         seg_paths = get_image_paths_given_substr(seg_path, scan_name)
         segs = get_images_given_path(seg_paths, data_type=sitk.sitkUInt8)
         combined_segs = combine_segmentations(segs)
         combined_segs = resample_img(combined_segs, [1, 1, 1], sitk.sitkNearestNeighbor)
-        save_image_as_npz(combined_segs, output_dir + '/' + scan_name)
+        if crops is not None and crops.item().get(scan_name) is not None:
+            idx = crops.item().get(scan_name)
+            combined_segs = sitk.GetArrayFromImage(combined_segs)
+            combined_segs = combined_segs[idx[0]: idx[1], idx[2]: idx[3], idx[4]: idx[5]]
+            save_image_as_npz(combined_segs, output_dir + '/' + scan_name, is_numpy_arr=True)
+        else:
+            save_image_as_npz(combined_segs, output_dir + '/' + scan_name)
 
 
 def prepare_train_test_set(data_paths, train_path, test_path, seg_path, train_ratio=0.8):
