@@ -177,8 +177,8 @@ def denormalise_scan(nrml_scan, mean, std, min_val, max_val):
 def get_numpy_scan(scan_img):
     # itk image gets converted to numpy array! order is (z, y, x) for some reason
     numpy_scan = sitk.GetArrayFromImage(scan_img)
-    numpy_w_fixed_axes = numpy_scan.T
-    return numpy_w_fixed_axes
+    # numpy_w_fixed_axes = numpy_scan.T
+    return numpy_scan
 
 
 def prepare_volume_as_npz(scan_paths=[], ext_name='', save_dir='', crops=None):
@@ -209,7 +209,7 @@ def prepare_volume_as_npz(scan_paths=[], ext_name='', save_dir='', crops=None):
 
         if crops is not None and crops.item().get(scan_name) is not None:
             idx = crops.item().get(scan_name)
-            final_scan = final_scan[idx[4]: idx[5], idx[2]: idx[3], idx[0]: idx[1]]
+            final_scan = final_scan[idx[0]: idx[1], idx[2]: idx[3], idx[4]: idx[5]]
 
         # save array
         np.savez(save_dir + '/' + scan_name, data=final_scan, mean=mean, std=std, min_val=min_val, max_val=max_val)
@@ -413,20 +413,20 @@ def get_all_patches(volume, side='c', dim=256, step=(128, 128)):
     a, c, s = volume.shape
     all_patches = []
     
-    if side == 's':
-        count = s
+    if side == 'a':
+        count = a
     elif side == 'c':
         count = c
     else:
-        count = a
+        count = s
     
     for i in range(count):
-        if side == 's':
-            scan_slice = volume[:,:,i]
+        if side == 'a':
+            scan_slice = volume[i,:,:]
         elif side == 'c':
             scan_slice = volume[:,i,:]
         else:
-            scan_slice = volume[i,:,:]
+            scan_slice = volume[:,:,i]
         patches = get_patches_from_2d_img(scan_slice, dim, step)
         all_patches.append(patches)
     

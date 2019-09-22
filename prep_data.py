@@ -30,11 +30,7 @@ def get_patches(scan_path, scan_name, side='c', patch_size=256, patch_step=(128,
     # crop scan using segmentation - currently not in use
     # seg = np.load(seg_path)['data']
     # cropped_scan = crop_volume(scan, seg, is_mr)
-    """
-    if crops.item().get(scan_name) is not None:    
-        idx = crops.item().get(scan_name)
-        scan = scan[idx[0]:idx[1], idx[2]:idx[3], idx[4]: idx[5]]
-    """
+     
     # get all patches
     all_patches = get_all_patches(scan, side=side, dim=patch_size, step=patch_step)
     
@@ -84,9 +80,9 @@ def prepare_data(root_path, crops, is_train = True, is_prep_npz=True, side='c', 
             scan_name = scan_path.replace(".npz", "").split('/')[-1]
             print(scan_name)
             # seg_path = train_seg_path + '/' + scan_name + '.npz'
-            # is_ct = is_ct_file(scan_path) - for visceral
+            is_ct = is_ct_file(scan_path)
             # is_ct = 'T1' not in scan_path - for ct_mr_nrad
-            is_ct = 'T1' not in scan_path
+            # is_ct = 'T1' not in scan_path
             is_mr = not is_ct
 
             # get all patches
@@ -105,20 +101,17 @@ def prepare_data(root_path, crops, is_train = True, is_prep_npz=True, side='c', 
 
 
 if __name__ == '__main__':
-    """
-    data_path = './data/visceral_full'
-    crop_path = './visceral_crops.npz'
-    """
+    # data_path = './data/visceral_full'
+    # crop_path = './visceral_crops.npz'
     
     data_path = './data/ct_mr_nrad'
     crop_path = './ct_mr_nrad_crops.npz'
     
-
     crops = np.load(crop_path, allow_pickle=True)['data']
 
     # prepare train data here
-    prepare_data(data_path, crops, is_train=True, is_prep_npz=True, side='s', patch_size=128, patch_step=(32, 100))
+    prepare_data(data_path, crops, is_train=True, is_prep_npz=True, side='c', patch_size=256, patch_step=(64, 64))
 
-    # prepare test data here
-    prepare_data(data_path, crops, is_train=False, is_prep_npz=True)
+    # # prepare test data here
+    prepare_data(data_path, None, is_train=False, is_prep_npz=True)
 
