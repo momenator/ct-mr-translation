@@ -1,22 +1,20 @@
 # CT to MR Spinal Translation
 
-# Papers
-1. Tumor-Aware, Adversarial Domain Adaptation from CT to MRI for Lung Cancer Segmentation. Wolterink et al.
-2. Image Synthesis in Multi-Contrast MRI with Conditional Generative Adversarial Networks. UH et al.
-3. Cross-Modality Image Synthesis from Unpaired Data Using CycleGAN. Hiasa et al.
-4. Unsupervised Reverse Domain Adaptation for Synthetic Medical Imagesvia Adversarial Training. Mahmood et al. (recommended)
-5. Adversarial synthesis learning enables segmentation without target modality ground truth. Huo et al. (pretty close to what we plan to do!) - Reading
-6. MedGAN: Medical Image Translation using GANs. Armanious et al.
-7. Deep MR to CT Synthesis using Unpaired Data. Wolterlink et al. - Read
-8. Deep CT to MR Synthesis using Paired and Unpaired Data. Jin et al. - Reading
-9. Generative adversarial networks and adversarial methods in biomedical image analysis. Wolterlink et al. - Reading
+What is in this repo? Preprocessing pipeline to process VISCERAL scans for the Spinal CT to MR Translation project and evaluation.
 
-# Datasets
+### Quickstart
 
-# Todos
-1. Read up papers - doing
-2. Test out simple GAN models
-3. Get dataset (own and online)
-4. Try out different GANs - precursor for experiments for spinal scans.
-5. Run experiments and record result
-6. Write report.
+1. Download the visceral dataset and put 36 CT and MRI scans (72 in total) in folder data/visceral/train. For the test set,
+put the remaining scans in folder data/visceral/test.
+
+2. Run ```python prep_data.py``` to prepare the training and test sets.
+
+3. There should be trainA and trainB folders in data/visceral containing numpy arrays. Each numpy array contains a patch from CT
+or MRI slice.
+
+4. Transfer the data to the CycleGAN repository and start the training there. The scripts move_data_visceral.sh might be useful for this task.
+
+### Evaluation
+
+Some results from this project may be viewed in results.ipynb.
+

@@ -58,9 +58,9 @@ def prepare_data(root_path, crops, is_train = True, is_prep_npz=True, is_prep_se
     scan_paths_train = get_image_paths_given_substr(train_path, '.nii')
     scan_names = [ p.split('/')[-1].strip('.nii.gz') for p in scan_paths_train ]
 
-    # os.makedirs(train_seg_path, exist_ok=True)
-    # os.makedirs(dom_a_path, exist_ok=True)
-    # os.makedirs(dom_b_path, exist_ok=True)
+    os.makedirs(train_seg_path, exist_ok=True)
+    os.makedirs(dom_a_path, exist_ok=True)
+    os.makedirs(dom_b_path, exist_ok=True)
     
     if is_prep_npz is True:
         print("Converting zipped nii to npz with crops")
@@ -83,10 +83,8 @@ def prepare_data(root_path, crops, is_train = True, is_prep_npz=True, is_prep_se
         for scan_path in npz_file_paths:
             scan_name = scan_path.replace(".npz", "").split('/')[-1]
             print(scan_name)
-            # seg_path = train_seg_path + '/' + scan_name + '.npz'
+            seg_path = train_seg_path + '/' + scan_name + '.npz'
             is_ct = is_ct_file(scan_path)
-            # is_ct = 'T1' not in scan_path - for ct_mr_nrad
-            # is_ct = 'T1' not in scan_path
             is_mr = not is_ct
 
             # get all patches
@@ -107,15 +105,12 @@ def prepare_data(root_path, crops, is_train = True, is_prep_npz=True, is_prep_se
 if __name__ == '__main__':
     data_path = './data/visceral_full'
     crop_path = './visceral_crops.npz'
-    
-    # data_path = './data/ct_mr_nrad'
-    # crop_path = './ct_mr_nrad_crops.npz'
-    
+        
     crops = np.load(crop_path, allow_pickle=True)['data']
 
     # prepare train data here
-    # prepare_data(data_path, crops, is_train=True, is_prep_npz=True, is_prep_seg=False, side='c', patch_size=256, patch_step=(64, 64))
+    prepare_data(data_path, crops, is_train=True, is_prep_npz=True, is_prep_seg=False, side='c', patch_size=256, patch_step=(64, 64))
 
-    # # prepare test data here
+    # prepare test data here
     prepare_data(data_path, crops, is_train=False, is_prep_npz=False, is_prep_seg=True)
 

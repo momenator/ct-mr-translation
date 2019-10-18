@@ -1,4 +1,5 @@
 """
+  DEPRECATED
   given zipped nii files, generate a folder structure
   
   - data
